@@ -1,0 +1,151 @@
+// ======================================================
+        // 4. LOGIKA VÝPOČTU A RENDEROVÁNÍ
+        // ======================================================
+
+        // Pomocná funkce pro získání obrázku (jezdec, tým nebo odpověď)
+        const getImg = (val) => {
+            if (!val) return "https://via.placeholder.com/50?text=?";
+            if (D[val]) return D[val];
+            if (T[val.toLowerCase()]) return T[val.toLowerCase()].l;
+            return "https://via.placeholder.com/50?text=" + val.charAt(0);
+        };
+
+        const calculatePoints = (user) => {
+            let p = 0;
+            const t = TIPS[user];
+
+            // 1. Mistr světa (+10b)
+            if (RESULTS.champion && t.champion === RESULTS.champion) p += 10;
+
+            // 2. Konstruktéři (+1b za pozici + Bonusy)
+            let matches = 0;
+            t.constructors.forEach((team, i) => {
+                if (RESULTS.constructors[i] === team) {
+                    matches++;
+                    p += 1;
+                }
+            });
+            // Bonusy za konstruktéry (pouze pokud je vyplněno všech 11 výsledků)
+            if (RESULTS.constructors.length === 11) {
+                if (matches === 11) p += 20; // 100% trefa
+                else if (matches >= 5 && t.constructors.slice(0, 5).every((team, i) => team === RESULTS.constructors[i])) p += 15; // Top 5
+                else if (matches >= 3 && t.constructors.slice(0, 3).every((team, i) => team === RESULTS.constructors[i])) p += 10; // Top 3
+                else if (t.constructors[0] === RESULTS.constructors[0]) p += 5; // Jen vítěz
+            }
+
+            // 3. Interní souboje H2H (+1b každý)
+            Object.entries(RESULTS.h2h).forEach(([team, winner]) => {
+                if (winner && t.h2h[team] === winner) p += 1;
+            });
+
+            // 4. Speciály a ostatní otázky (+2b / Safety Car +3b)
+            Object.entries(RESULTS.specials).forEach(([q, res]) => {
+                if (res && t.specials[q] === res) {
+                    // Safety Car otázky dáváme za 3b, ostatní za 2b
+                    p += (q.includes("Safety Car")) ? 3 : 2;
+                }
+            });
+
+            return p;
+        };
+
+        const render = () => {
+            // Aktualizace postupu sezóny
+            document.getElementById('race-count').innerText = PROGRESS;
+
+            const userNames = Object.keys(TIPS);
+            const sortedPlayers = userNames.map(u => ({ n: u, p: calculatePoints(u) })).sort((a, b) => b.p - a.p);
+
+            // 1. Vykreslení Leaderboardu
+            document.getElementById('leaderboard').innerHTML = sortedPlayers.map((u, i) => `
+                <div class="glass p-5 border-b-4 ${i === 0 ? 'border-yellow-500 shadow-[0_10px_30px_rgba(234,179,8,0.1)]' : 'border-red-600'}">
+                    <div class="text-[9px] text-gray-500 uppercase font-black">${i + 1}. Místo</div>
+                    <div class="text-xl font-black">${u.n}</div>
+                    <div class="text-3xl text-red-500 font-black tracking-tighter">${u.p} <span class="text-sm opacity-40">B</span></div>
+                </div>`).join('');
+
+            // 2. Vykreslení karet hráčů
+            document.getElementById('players-grid').innerHTML = userNames.map(u => {
+                const t = TIPS[u];
+                const pts = calculatePoints(u);
+
+                return `
+                <div class="glass">
+                    <div class="section-header flex justify-between items-center bg-white/5">
+                        <span class="text-lg font-black text-white italic">${u}</span>
+                        <span class="text-emerald-400 font-black">${pts} Bodů celkem</span>
+                    </div>
+
+                    <div class="p-6 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest">Mistr světa (+10)</h4>
+                                <div class="flex items-center p-3 rounded-xl ${RESULTS.champion ? (t.champion === RESULTS.champion ? 'correct' : 'wrong') : 'bg-black/40'}">
+                                    <img src="${getImg(t.champion)}" class="img-f1 mr-3">
+                                    <span class="text-xs font-bold">${t.champion}</span>
+                                    ${RESULTS.champion && t.champion === RESULTS.champion ? '<span class="pts-badge">+10</span>' : ''}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest">Pohár konstruktérů</h4>
+                                <div class="grid grid-cols-1 gap-1">
+                                    ${t.constructors.map((team, i) => {
+                                        const res = RESULTS.constructors[i];
+                                        const ok = res === team;
+                                        return `
+                                        <div class="flex items-center p-2 rounded-lg text-[9px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
+                                            <span class="w-4 opacity-30">${i + 1}.</span>
+                                            <img src="${getImg(team)}" class="img-f1 mr-2 scale-75">
+                                            <span class="font-bold uppercase">${team}</span>
+                                            ${ok ? '<span class="pts-badge">+1</span>' : ''}
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest text-center border-b border-white/5 pb-2">Interní souboje H2H (+1b)</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                ${Object.entries(t.h2h).map(([team, driver]) => {
+                                    const res = RESULTS.h2h[team];
+                                    const ok = res === driver;
+                                    return `
+                                    <div class="flex items-center p-2 rounded-lg text-[9px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
+                                        <img src="${getImg(team)}" class="w-6 mr-2 opacity-50">
+                                        <img src="${getImg(driver)}" class="img-f1 mr-2 scale-75">
+                                        <span class="font-bold">${driver}</span>
+                                        ${ok ? '<span class="pts-badge">+1</span>' : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest text-center border-b border-white/5 pb-2">Bonusové otázky & Safety Car</h4>
+                            <div class="grid grid-cols-1 gap-2">
+                                ${Object.entries(t.specials).map(([q, ans]) => {
+                                    const res = RESULTS.specials[q];
+                                    const ok = res === ans;
+                                    const isSC = q.includes("Safety Car");
+                                    return `
+                                    <div class="flex items-center justify-between p-3 rounded-xl text-[10px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
+                                        <div class="flex flex-col">
+                                            <span class="text-[8px] opacity-40 mb-1 uppercase">${q}</span>
+                                            <span class="font-black uppercase text-white">${ans}</span>
+                                        </div>
+                                        ${ok ? `<span class="pts-badge">${isSC ? '+3' : '+2'}</span>` : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        // Spuštění
+        render();
+    </script>
+</body>
+</html>
