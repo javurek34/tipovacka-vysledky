@@ -1,338 +1,618 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIPOVAČKA 2026 - VÝSLEDKY</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 TIPOVAČKA 2026 | Kompletní Výsledky</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
     <style>
-        body { background: #08080a; color: #e2e8f0; font-family: 'Bruno Ace', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; overflow: hidden; }
-        .correct { background: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; border-left: 4px solid #10b981 !important; }
-        .wrong { opacity: 0.3; grayscale: 1; filter: grayscale(1); }
-        .img-f1 { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; background: #000; border: 1px solid rgba(255,255,255,0.1); }
-        .pts-badge { background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: auto; }
-        .section-header { background: rgba(255,255,255,0.02); padding: 0.75rem 1rem; font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* Definice základních vlastností a barev */
+        :root {
+            --f1-red: #e10600;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #0a0a0c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Bruno Ace', sans-serif;
+        }
+
+        h1, h2, h3, .f1-font {
+            font-family: 'Bruno Ace', sans-serif;
+            text-transform: uppercase;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(225, 6, 0, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 147, 204, 0.05) 0%, transparent 40%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Skleněný efekt pro karty */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(225, 6, 0, 0.4);
+        }
+
+        /* Stylování obrázků jezdců */
+        .driver-portrait {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            filter: saturate(1.1);
+        }
+
+        .img-wrapper {
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            background: #1a1a1a;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Indikátory správnosti tipu */
+        .status-correct {
+            border-left: 4px solid #10b981 !important;
+            background: rgba(16, 185, 129, 0.08) !important;
+        }
+
+        .status-wrong {
+            border-left: 4px solid #ef4444 !important;
+            opacity: 0.6;
+        }
+
+        /* Animace pro leaderboard */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-card {
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        /* Custom scrollbar pro F1 feel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--f1-red); }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-[1600px] mx-auto">
-        <header class="text-center mb-12">
-            <h1 class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-4">
-                TIPOVAČKA <span class="text-red-600">2026</span> – průběžné výsledky
-            </h1>
-            <div class="text-sm md:text-xl text-gray-500 font-bold uppercase tracking-[0.4em] mb-10">
-                Odjeto závodů: <span id="race-count" class="text-red-500">0/24</span>
+    <div class="max-w-7xl mx-auto">
+        
+        <header class="text-center mb-16">
+            <div class="inline-block bg-red-600 text-white text-[10px] font-black px-3 py-1 mb-4 tracking-[0.3em]">
+                OFFICIAL PREDICTION TRACKER
             </div>
-            
-            <div id="leaderboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto"></div>
+            <h1 class="text-4xl md:text-7xl mb-4 italic tracking-tighter leading-none">
+                SEASON <span class="text-red-600">2026</span>
+            </h1>
+            <p class="text-gray-400 text-sm max-w-2xl mx-auto uppercase tracking-widest">
+                Srovnání tipů: Škody vs. Králik vs. Javor vs. Čermis
+            </p>
         </header>
 
-        <div id="players-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-10"></div>
+        <div id="leaderboard-root" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-20">
+            </div>
+
+        <div id="players-root" class="space-y-24">
+            </div>
+
     </div>
 
     <script>
-        // ======================================================
-        // 1. ZDE DOPLŇUJ VÝSLEDKY (REÁLNÝ STAV)
-        // ======================================================
-        const PROGRESS = "0/24"; 
+// --- 1. DATABÁZE OBRÁZKŮ JEZDCŮ ---
+// Klíče odpovídají jménům, která budeme používat v tipech
+const DRIVER_IMAGES = {
+    "Verstappen": "https://cdn-6.motorsport.com/images/mgl/6D1XbeV0/s8/max-verstappen-red-bull-racing.jpg",
+    "Pérez": "https://news.gm.com/content/dam/Media/images/US/Release_Images/2025/aug/0826-f1/Cadillac-F1-driver-Sergio-P%C3%A9rez.png",
+    "Hadjar": "https://www.formulaonehistory.com/wp-content/uploads/2024/12/Isack-Hadjar-F1-2026-RedBull.webp",
+    "Bottas": "https://www.formulaonehistory.com/wp-content/uploads/2023/10/Valtteri-Bottas-Cadillac.webp",
+    "Piastri": "https://ratings-images-prod.pulse.ea.com/F1-25/portraits/p4.png?im=FaceCrop,algorithm=dnn,padding=0.7,width=256,height=256",
+    "Norris": "https://img2.51gt3.com/rac/racer/202503/cfc139b2b49e48cd80a436c00a71711d.png",
+    "Russell": "https://www.formulaonehistory.com/wp-content/uploads/2023/10/George-Russell-F1-2023.webp",
+    "Antonelli": "https://f1mavericks.com/wp-content/uploads/2025/12/andant01.png",
+    "Leclerc": "https://img2.51gt3.com/rac/racer/202503/fe2de9975d864e38acfd9933164954a6.png",
+    "Hamilton": "https://img2.51gt3.com/rac/racer/202503/0ff8ae7649b447bd8e023f4e31dc4042.png",
+    "Stroll": "https://img2.51gt3.com/rac/racer/202503/2869081e10e6412894446d1320c9cb44.png",
+    "Alonso": "https://img2.51gt3.com/rac/racer/202503/25ccca7ffa96437aa54f169a4e9338fa.png",
+    "Ocon": "https://img2.51gt3.com/rac/racer/202503/34d4155677ae4874aae0240f9b366cc3.png",
+    "Bearman": "https://img2.51gt3.com/rac/racer/202503/b4e1b56f7f2a4c989f16787b26852cba.png",
+    "Hülkenberg": "https://img2.51gt3.com/rac/racer/202503/737aac3065d74096b767308cf4c3164e.png",
+    "Bortoleto": "https://img2.51gt3.com/rac/racer/202503/d7cd7274c65147fb9ec59fd7d5ff2413.png",
+    "Gasly": "https://img2.51gt3.com/rac/racer/202503/2e2727ea4b564c55a6b5e18a25d7e230.png",
+    "Colapinto": "https://img2.51gt3.com/rac/racer/20250610/dd7ecc8a-e174-4a12-a6fe-839fffe8b221.jpg",
+    "Sainz": "https://cdn-4.motorsport.com/images/mgl/2jXPqrg6/s800/carlos-sainz-williams.jpg",
+    "Albon": "https://img2.51gt3.com/rac/racer/202503/1f1fd439e5344c7a83faf4a80d09486f.png",
+    "Lawson": "https://www.formulaonehistory.com/wp-content/uploads/2024/01/Liam-Lawson-F1-2024-Red-Bull.webp",
+    "Lindblad": "https://cdn-3.motorsport.com/images/mgl/YE9wONPY/s800/arvid-lindblad-racing-bulls.jpg",
+    // Pomocné ikony pro speciální otázky
+    "ANO": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Approve_icon.svg/120px-Approve_icon.svg.png",
+    "NE": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Red_X.svg/120px-Red_X.svg.png"
+};
 
-        const RESULTS = {
-            champion: null, // "Verstappen"
-            constructors: [], // ["mercedes", "mclaren", "redbull", "ferrari", "audi", "williams", "aston", "rb", "alpine", "cadillac", "haas"]
-            h2h: {
-                redbull: null, mclaren: null, ferrari: null, mercedes: null, 
-                williams: null, aston: null, audi: null, cadillac: null, 
-                alpine: null, rb: null, haas: null
-            },
-            specials: {
-                "Kdo získá více Poles?": null,
-                "Kdo skončí hůře z nabízených?": null,
-                "První stáj s body?": null,
-                "Vydrží Hadjar celou sezónu?": null,
-                "Počet unikátních vítězů?": null,
-                "Safety Car v Austrálii?": null,
-                "Nejrychlejší Pit Stop?": null,
-                "Kvalifikační kolo v Monaku?": null,
-                "Počet nasazení Full Wets?": null,
-                "Papaya Rules v McLarenu?": null
-            }
+// --- 2. KOMPLETNÍ DATA TÝMŮ (Loga + Barvy) ---
+const TEAMS = {
+    mclaren: { 
+        name: "McLaren", 
+        color: "#FF8700", 
+        logo: "https://static.vecteezy.com/system/resources/previews/020/500/399/non_2x/mclaren-brand-logo-car-symbol-name-black-and-orange-design-british-automobile-illustration-free-vector.jpg" 
+    },
+    redbull: { 
+        name: "Red Bull", 
+        color: "#0600EF", 
+        logo: "https://cdn-6.motorsport.com/images/mgl/Y99JQRbY/s8/red-bull-racing-logo-1.jpg" 
+    },
+    mercedes: { 
+        name: "Mercedes", 
+        color: "#27F4D2", 
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp/890px-Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp.png" 
+    },
+    ferrari: { 
+        name: "Ferrari", 
+        color: "#EF1A2D", 
+        logo: "https://upload.wikimedia.org/wikipedia/de/thumb/c/c0/Scuderia_Ferrari_Logo.svg/1536px-Scuderia_Ferrari_Logo.svg.png" 
+    },
+    williams: { 
+        name: "Williams", 
+        color: "#64C4FF", 
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Williams_Racing_logo.svg/1200px-Williams_Racing_logo.svg.png" 
+    },
+    aston: { 
+        name: "Aston Martin", 
+        color: "#229971", 
+        logo: "https://upload.wikimedia.org/wikipedia/en/thumb/7/73/Aston_Martin_F1_Team_logo.svg/1200px-Aston_Martin_F1_Team_logo.svg.png" 
+    },
+    audi: { 
+        name: "Audi", 
+        color: "#F50537", 
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Audi_F1_Logo.svg/1200px-Audi_F1_Logo.svg.png" 
+    },
+    cadillac: { 
+        name: "Cadillac", 
+        color: "#FFD700", 
+        logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Cadillac_F1_Team_logo.svg/1200px-Cadillac_F1_Team_logo.svg.png" 
+    },
+    alpine: { 
+        name: "Alpine", 
+        color: "#0093CC", 
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Alpine_F1_Team_Logo.svg/1200px-Alpine_F1_Team_Logo.svg.png" 
+    },
+    rb: { 
+        name: "Racing Bulls", 
+        color: "#6692FF", 
+        logo: "https://upload.wikimedia.org/wikipedia/en/thumb/1/12/Racing_Bulls_F1_Team_logo.svg/1200px-Racing_Bulls_F1_Team_logo.svg.png" 
+    },
+    haas: { 
+        name: "Haas", 
+        color: "#B6BABD", 
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Haas_F1_Team_logo.svg/1200px-Haas_F1_Team_logo.svg.png" 
+    }
+};  
+        // --- 3. REÁLNÉ VÝSLEDKY (Zde doplňuješ data během sezóny) ---
+const REALITY = {
+    // Jméno mistra světa (např: "Verstappen")
+    champion: null, 
+
+    // Pořadí konstruktérů od 1. do 11. místa
+    // Příklad: ["mclaren", "redbull", "mercedes", ...]
+    constructors: [], 
+
+    // Vítězové týmových soubojů (H2H)
+    h2h: {
+        redbull: null,   // "Verstappen" nebo "Hadjar"
+        mclaren: null,   // "Norris" nebo "Piastri"
+        ferrari: null,   // "Hamilton" nebo "Leclerc"
+        mercedes: null,  // "Russell" nebo "Antonelli"
+        williams: null,  // "Sainz" nebo "Albon"
+        aston: null,     // "Alonso" nebo "Stroll"
+        audi: null,      // "Hülkenberg" nebo "Bortoleto"
+        cadillac: null,  // "Pérez" nebo "Bottas"
+        alpine: null,    // "Gasly" nebo "Colapinto"
+        rb: null,        // "Lawson" nebo "Lindblad"
+        haas: null       // "Ocon" nebo "Bearman"
+    },
+
+    // Výsledky speciálních otázek
+    specials: {
+        "Safety Car v Austrálii?": null,        // "ANO" / "NE"
+        "DHL Fastest Pit Stop?": null,          // "Red Bull" / "McLaren" / "Ferrari"
+        "Bude v Brazílii pršet?": null,         // "ANO" / "NE"
+        "Monako: Čas vs 2025?": null,           // "RYCHLEJŠÍ" / "POMALEJŠÍ"
+        "Získá Hamilton 106. výhru?": null,     // "ANO" / "NE"
+        "Pit Stop pod 1.91s?": null,            // "ANO" / "NE"
+        "Hadjar odjede celou sezónu?": null,    // "ANO" / "NE"
+        "Počet unikátních vítězů?": null        // Číslo (např: 5)
+    }
+};
+
+// --- 4. KONFIGURACE BODOVÁNÍ ---
+const SCORING = {
+    CHAMPION: 10,       // Body za trefení mistra světa
+    H2H: 1,             // Body za každý vyhraný týmový souboj
+    SPECIAL: 2,         // Body za každou speciální otázku
+    CONSTRUCTOR_POS: 1, // Body za každou přesně trefenou pozici v PK
+    BONUS_TOP5: 15,     // Bonus za trefení kompletní TOP 5 konstruktérů
+    BONUS_CLEAN: 20     // Bonus za trefení úplně všech 11 pozic konstruktérů
+};
+        // --- 5. TIPY JEDNOTLIVÝCH HRÁČŮ ---
+const PLAYERS = {
+    "Škody": {
+        champion: "Verstappen",
+        constructors: ["mercedes", "mclaren", "redbull", "ferrari", "audi", "williams", "aston", "rb", "cadillac", "alpine", "haas"],
+        h2h: {
+            redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell",
+            williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas",
+            alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+        },
+        specials: {
+            "Safety Car v Austrálii?": "ANO",
+            "DHL Fastest Pit Stop?": "McLaren",
+            "Bude v Brazílii pršet?": "ANO",
+            "Monako: Čas vs 2025?": "POMALEJŠÍ",
+            "Získá Hamilton 106. výhru?": "ANO",
+            "Pit Stop pod 1.91s?": "NE",
+            "Hadjar odjede celou sezónu?": "ANO",
+            "Počet unikátních vítězů?": "6"
+        }
+    },
+    "Králik": {
+        champion: "Piastri",
+        constructors: ["mclaren", "redbull", "ferrari", "mercedes", "aston", "audi", "alpine", "cadillac", "williams", "haas", "rb"],
+        h2h: {
+            redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell",
+            williams: "Albon", aston: "Alonso", audi: "Hülkenberg", cadillac: "Pérez",
+            alpine: "Gasly", rb: "Lawson", haas: "Ocon"
+        },
+        specials: {
+            "Safety Car v Austrálii?": "ANO",
+            "DHL Fastest Pit Stop?": "Ferrari",
+            "Bude v Brazílii pršet?": "ANO",
+            "Monako: Čas vs 2025?": "RYCHLEJŠÍ",
+            "Získá Hamilton 106. výhru?": "NE",
+            "Pit Stop pod 1.91s?": "NE",
+            "Hadjar odjede celou sezónu?": "ANO",
+            "Počet unikátních vítězů?": "5"
+        }
+    },
+    "Javor": {
+        champion: "Verstappen",
+        constructors: ["mercedes", "mclaren", "ferrari", "redbull", "williams", "aston", "alpine", "rb", "haas", "audi", "cadillac"],
+        h2h: {
+            redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell",
+            williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas",
+            alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+        },
+        specials: {
+            "Safety Car v Austrálii?": "ANO",
+            "DHL Fastest Pit Stop?": "Ferrari",
+            "Bude v Brazílii pršet?": "NE",
+            "Monako: Čas vs 2025?": "POMALEJŠÍ",
+            "Získá Hamilton 106. výhru?": "ANO",
+            "Pit Stop pod 1.91s?": "ANO",
+            "Hadjar odjede celou sezónu?": "ANO",
+            "Počet unikátních vítězů?": "6"
+        }
+    },
+    "Čermis": {
+        champion: "Verstappen",
+        constructors: ["mercedes", "mclaren", "redbull", "williams", "aston", "ferrari", "cadillac", "audi", "rb", "haas", "alpine"],
+        h2h: {
+            redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell",
+            williams: "Sainz", aston: "Alonso", audi: "Bortoleto", cadillac: "Bottas",
+            alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+        },
+        specials: {
+            "Safety Car v Austrálii?": "NE",
+            "DHL Fastest Pit Stop?": "Red Bull",
+            "Bude v Brazílii pršet?": "ANO",
+            "Monako: Čas vs 2025?": "RYCHLEJŠÍ",
+            "Získá Hamilton 106. výhru?": "NE",
+            "Pit Stop pod 1.91s?": "ANO",
+            "Hadjar odjede celou sezónu?": "ANO",
+            "Počet unikátních vítězů?": "5"
+        }
+    }
+};
+        // --- 6. FUNKCE PRO VÝPOČET BODŮ ---
+function calculatePoints(playerName) {
+    const tip = PLAYERS[playerName];
+    let total = 0;
+
+    // A. MISTR SVĚTA (10b)
+    if (REALITY.champion && tip.champion === REALITY.champion) {
+        total += SCORING.CHAMPION;
+    }
+
+    // B. H2H SOUBOJE (1b za každý)
+    Object.entries(tip.h2h).forEach(([team, predictedDriver]) => {
+        const actualWinner = REALITY.h2h[team];
+        if (actualWinner && predictedDriver === actualWinner) {
+            total += SCORING.H2H;
+        }
+    });
+
+    // C. SPECIÁLNÍ OTÁZKY (2b za každou)
+    Object.entries(tip.specials).forEach(([question, predictedAnswer]) => {
+        const actualAnswer = REALITY.specials[question];
+        if (actualAnswer !== null && predictedAnswer == actualAnswer) {
+            total += SCORING.SPECIAL;
+        }
+    });
+
+    // D. POHÁR KONSTRUKTÉRŮ (1b za pozici + bonusy)
+    let correctCount = 0;
+    
+    // Procházíme tipované pořadí a porovnáváme s realitou
+    tip.constructors.forEach((teamKey, index) => {
+        const actualTeam = REALITY.constructors[index];
+        if (actualTeam && teamKey === actualTeam) {
+            total += SCORING.CONSTRUCTOR_POS;
+            correctCount++;
+        }
+    });
+
+    // Bonusy za konstruktéry (pouze pokud je už známo všech 11 pozic)
+    if (REALITY.constructors.length === 11) {
+        // 1. Bonus za kompletní TOP 5 (všech 5 prvních pozic musí sedět)
+        const top5Correct = tip.constructors.slice(0, 5).every((t, i) => t === REALITY.constructors[i]);
+        if (top5Correct) {
+            total += SCORING.BONUS_TOP5;
+        }
+
+        // 2. Bonus za 100% trefu (všech 11 pozic)
+        if (correctCount === 11) {
+            total += SCORING.BONUS_CLEAN;
+        }
+    }
+
+    return total;
+}
+        // --- 7. GENEROVÁNÍ HORNÍHO ŽEBŘÍČKU ---
+function renderLeaderboard() {
+    const container = document.getElementById('leaderboard-root');
+    
+    // Vytvoření pole objektů s výsledky a jejich seřazení
+    const standings = Object.keys(PLAYERS).map(name => {
+        return {
+            name: name,
+            points: calculatePoints(name)
         };
+    }).sort((a, b) => b.points - a.points); // Seřazení sestupně (nejvíc bodů první)
 
-        // ======================================================
-        // 2. DATABÁZE (Loga a Fotky)
-        // ======================================================
-        const D = {
-            "Verstappen": "https://img2.51gt3.com/rac/racer/202503/d5d8525b68df41969698d248d2194383.png",
-            "Norris": "https://img2.51gt3.com/rac/racer/202503/cfc139b2b49e48cd80a436c00a71711d.png",
-            "Piastri": "https://ratings-images-prod.pulse.ea.com/F1-25/portraits/p4.png?im=FaceCrop,algorithm=dnn,padding=0.7,width=256,height=256",
-            "Hamilton": "https://img2.51gt3.com/rac/racer/202503/0ff8ae7649b447bd8e023f4e31dc4042.png",
-            "Leclerc": "https://img2.51gt3.com/rac/racer/202503/fe2de9975d864e38acfd9933164954a6.png",
-            "Russell": "https://f1mavericks.com/wp-content/uploads/2025/12/georus01.png",
-            "Sainz": "https://cdn-4.motorsport.com/images/mgl/2jXPqrg6/s800/carlos-sainz-williams.jpg",
-            "Alonso": "https://img2.51gt3.com/rac/racer/202503/25ccca7ffa96437aa54f169a4e9338fa.png",
-            "Hülkenberg": "https://f1mavericks.com/wp-content/uploads/2025/12/nichul01.png",
-            "Bortoleto": "https://img2.51gt3.com/rac/racer/202503/gabbor01.png",
-            "Bearman": "https://f1mavericks.com/wp-content/uploads/2025/12/ollbea01.png",
-            "Ocon": "https://f1mavericks.com/wp-content/uploads/2025/12/estoco01.png",
-            "Gasly": "https://f1mavericks.com/wp-content/uploads/2025/12/piegas01.png",
-            "Lawson": "https://f1mavericks.com/wp-content/uploads/2025/12/lialaw01.png",
-            "ANO": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Approve_icon.svg/1200px-Approve_icon.svg.png",
-            "NE": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Red_X.svg/1200px-Red_X.svg.png",
-            "Audi": "https://i.namu.wiki/i/4IBk6HSXTu4w5iSVgRXwBvbZkqJE2KDQNTdPQ9FbSjrWXWenVLMZCViGXE4kUstE1_NOJEAyaPcj96BJ3sO9Pw.webp"
-        };
+    // Vygenerování HTML pro každou kartu v žebříčku
+    container.innerHTML = standings.map((player, index) => {
+        // Zvýraznění lídra (prvního místa)
+        const isLeader = index === 0 && player.points > 0;
+        const leaderClass = isLeader ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]' : 'border-white/10';
+        
+        return `
+            <div class="glass-card p-6 text-center animate-card ${leaderClass}" style="animation-delay: ${index * 100}ms">
+                <div class="flex justify-center mb-2">
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded ${index === 0 ? 'bg-amber-500 text-black' : 'bg-white/10 text-gray-400'}">
+                        P${index + 1}
+                    </span>
+                </div>
+                <h3 class="text-xl font-black italic tracking-tighter">${player.name}</h3>
+                <div class="mt-2">
+                    <span class="text-4xl font-black text-white">${player.points}</span>
+                    <span class="text-xs font-bold text-red-600 ml-1 uppercase">pts</span>
+                </div>
+                ${isLeader ? '<div class="text-[9px] text-amber-500 font-bold mt-2 tracking-widest italic">CURRENT LEADER</div>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+        // --- 8. GENEROVÁNÍ DETAILNÍCH KARET HRÁČŮ ---
+function renderPlayerDetails() {
+    const container = document.getElementById('players-root');
+    
+    container.innerHTML = Object.keys(PLAYERS).map(name => {
+        const tip = PLAYERS[name];
+        
+        return `
+        <div class="glass-card p-6 md:p-10 border-t-4 border-t-red-600 relative overflow-hidden">
+            <div class="absolute -right-4 -top-10 text-9xl font-black text-white/[0.02] italic pointer-events-none uppercase">
+                ${name}
+            </div>
 
-        const T = {
-            mclaren: { n: "McLaren", l: "https://static.vecteezy.com/system/resources/previews/020/500/399/non_2x/mclaren-brand-logo-car-symbol-name-black-and-orange-design-british-automobile-illustration-free-vector.jpg", c: "#FF8700" },
-            redbull: { n: "Red Bull", l: "https://cdn-6.motorsport.com/images/mgl/Y99JQRbY/s8/red-bull-racing-logo-1.jpg", c: "#0600EF" },
-            mercedes: { n: "Mercedes", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp/890px-Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp.png", c: "#00A19B" },
-            ferrari: { n: "Ferrari", l: "https://upload.wikimedia.org/wikipedia/de/thumb/c/c0/Scuderia_Ferrari_Logo.svg/1536px-Scuderia_Ferrari_Logo.svg.png", c: "#EF4444" },
-            audi: { n: "Audi", l: "https://i.namu.wiki/i/4IBk6HSXTu4w5iSVgRXwBvbZkqJE2KDQNTdPQ9FbSjrWXWenVLMZCViGXE4kUstE1_NOJEAyaPcj96BJ3sO9Pw.webp", c: "#F50537" },
-            aston: { n: "Aston Martin", l: "https://www.f1authentics.com/cdn/shop/collections/Team-Logos-1500x1800px-ASTON-MARTIN.jpg", c: "#006F62" },
-            williams: { n: "Williams", l: "https://images.seeklogo.com/logo-png/61/1/atlassian-williams-racing-logo-png_seeklogo-613639.png", c: "#00A0DE" },
-            rb: { n: "RB", l: "https://cdn-3.motorsport.com/images/mgl/Y998adGY/s800/visa-cash-app-rb-logo.jpg", c: "#6692FF" },
-            alpine: { n: "Alpine", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Alpine_F1_Team_Logo.svg/500px-Alpine_F1_Team_Logo.svg.png", c: "#0090FF" },
-            cadillac: { n: "Cadillac", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Cadillac_Formula_1_Team_logo.png/1024px-Cadillac_Formula_1_Team_logo.png", c: "#E5E7EB" },
-            haas: { n: "Haas", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Haas_F1_Team_Logo.svg/1280px-Haas_F1_Team_Logo.svg.png", c: "#E6002B" }
-        };
-// ======================================================
-        // 3. DATA HRÁČŮ (VŠECHNY TIPY)
-        // ======================================================
-        const TIPS = {
-            "Škody": {
-                champion: "Verstappen",
-                constructors: ["mercedes", "mclaren", "redbull", "ferrari", "audi", "williams", "aston", "rb", "cadillac", "alpine", "haas"],
-                h2h: {
-                    redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell", 
-                    williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas", 
-                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
-                },
-                specials: {
-                    "Kdo získá více Poles?": "Verstappen",
-                    "Kdo skončí hůře z nabízených?": "Pérez",
-                    "První stáj s body?": "Audi",
-                    "Vydrží Hadjar celou sezónu?": "ANO",
-                    "Počet unikátních vítězů?": "5",
-                    "Safety Car v Austrálii?": "ANO",
-                    "Nejrychlejší Pit Stop?": "Red Bull",
-                    "Kvalifikační kolo v Monaku?": "Rychlejší",
-                    "Počet nasazení Full Wets?": "2",
-                    "Papaya Rules v McLarenu?": "ANO"
-                }
-            },
-            "Králik": {
-                champion: "Piastri",
-                constructors: ["mclaren", "redbull", "ferrari", "mercedes", "aston", "audi", "alpine", "cadillac", "williams", "haas", "rb"],
-                h2h: {
-                    redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell", 
-                    williams: "Albon", aston: "Alonso", audi: "Hülkenberg", cadillac: "Pérez", 
-                    alpine: "Gasly", rb: "Lawson", haas: "Ocon"
-                },
-                specials: {
-                    "Kdo získá více Poles?": "Norris",
-                    "Kdo skončí hůře z nabízených?": "Hadjar",
-                    "První stáj s body?": "Cadillac",
-                    "Vydrží Hadjar celou sezónu?": "NE",
-                    "Počet unikátních vítězů?": "4",
-                    "Safety Car v Austrálii?": "ANO",
-                    "Nejrychlejší Pit Stop?": "McLaren",
-                    "Kvalifikační kolo v Monaku?": "Pomalejší",
-                    "Počet nasazení Full Wets?": "3",
-                    "Papaya Rules v McLarenu?": "NE"
-                }
-            },
-            "Javor": {
-                champion: "Verstappen",
-                constructors: ["mercedes", "mclaren", "ferrari", "redbull", "williams", "aston", "alpine", "rb", "haas", "audi", "cadillac"],
-                h2h: {
-                    redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell", 
-                    williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas", 
-                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
-                },
-                specials: {
-                    "Kdo získá více Poles?": "Verstappen",
-                    "Kdo skončí hůře z nabízených?": "Pérez",
-                    "První stáj s body?": "Audi",
-                    "Vydrží Hadjar celou sezónu?": "ANO",
-                    "Počet unikátních vítězů?": "6",
-                    "Safety Car v Austrálii?": "ANO",
-                    "Nejrychlejší Pit Stop?": "Red Bull",
-                    "Kvalifikační kolo v Monaku?": "Rychlejší",
-                    "Počet nasazení Full Wets?": "1",
-                    "Papaya Rules v McLarenu?": "ANO"
-                }
-            },
-            "Čermis": {
-                champion: "Verstappen",
-                constructors: ["mercedes", "mclaren", "redbull", "williams", "aston", "ferrari", "cadillac", "audi", "rb", "haas", "alpine"],
-                h2h: {
-                    redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell", 
-                    williams: "Sainz", aston: "Alonso", audi: "Bortoleto", cadillac: "Bottas", 
-                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
-                },
-                specials: {
-                    "Kdo získá více Poles?": "Russell",
-                    "Kdo skončí hůře z nabízených?": "Hadjar",
-                    "První stáj s body?": "Audi",
-                    "Vydrží Hadjar celou sezónu?": "NE",
-                    "Počet unikátních vítězů?": "5",
-                    "Safety Car v Austrálii?": "NE",
-                    "Nejrychlejší Pit Stop?": "Ferrari",
-                    "Kvalifikační kolo v Monaku?": "Rychlejší",
-                    "Počet nasazení Full Wets?": "4",
-                    "Papaya Rules v McLarenu?": "ANO"
-                }
-            }
-        };
-// ======================================================
-        // 4. LOGIKA VÝPOČTU A RENDEROVÁNÍ
-        // ======================================================
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 relative z-10">
+                <div>
+                    <h2 class="text-4xl md:text-6xl font-black italic tracking-tighter leading-none">${name}</h2>
+                    <div class="h-1.5 w-20 bg-red-600 mt-4 rounded-full"></div>
+                </div>
+                <div class="bg-black/40 px-8 py-4 rounded-2xl border border-white/10 backdrop-blur-md">
+                    <span class="text-gray-500 text-[10px] uppercase font-black tracking-widest block mb-1">Current Score</span>
+                    <span class="text-4xl font-black text-red-600">${calculatePoints(name)}<span class="text-sm text-white/50 ml-2 italic">PTS</span></span>
+                </div>
+            </div>
 
-        // Pomocná funkce pro získání obrázku (jezdec, tým nebo odpověď)
-        const getImg = (val) => {
-            if (!val) return "https://via.placeholder.com/50?text=?";
-            if (D[val]) return D[val];
-            if (T[val.toLowerCase()]) return T[val.toLowerCase()].l;
-            return "https://via.placeholder.com/50?text=" + val.charAt(0);
-        };
-
-        const calculatePoints = (user) => {
-            let p = 0;
-            const t = TIPS[user];
-
-            // 1. Mistr světa (+10b)
-            if (RESULTS.champion && t.champion === RESULTS.champion) p += 10;
-
-            // 2. Konstruktéři (+1b za pozici + Bonusy)
-            let matches = 0;
-            t.constructors.forEach((team, i) => {
-                if (RESULTS.constructors[i] === team) {
-                    matches++;
-                    p += 1;
-                }
-            });
-            // Bonusy za konstruktéry (pouze pokud je vyplněno všech 11 výsledků)
-            if (RESULTS.constructors.length === 11) {
-                if (matches === 11) p += 20; // 100% trefa
-                else if (matches >= 5 && t.constructors.slice(0, 5).every((team, i) => team === RESULTS.constructors[i])) p += 15; // Top 5
-                else if (matches >= 3 && t.constructors.slice(0, 3).every((team, i) => team === RESULTS.constructors[i])) p += 10; // Top 3
-                else if (t.constructors[0] === RESULTS.constructors[0]) p += 5; // Jen vítěz
-            }
-
-            // 3. Interní souboje H2H (+1b každý)
-            Object.entries(RESULTS.h2h).forEach(([team, winner]) => {
-                if (winner && t.h2h[team] === winner) p += 1;
-            });
-
-            // 4. Speciály a ostatní otázky (+2b / Safety Car +3b)
-            Object.entries(RESULTS.specials).forEach(([q, res]) => {
-                if (res && t.specials[q] === res) {
-                    // Safety Car otázky dáváme za 3b, ostatní za 2b
-                    p += (q.includes("Safety Car")) ? 3 : 2;
-                }
-            });
-
-            return p;
-        };
-
-        const render = () => {
-            // Aktualizace postupu sezóny
-            document.getElementById('race-count').innerText = PROGRESS;
-
-            const userNames = Object.keys(TIPS);
-            const sortedPlayers = userNames.map(u => ({ n: u, p: calculatePoints(u) })).sort((a, b) => b.p - a.p);
-
-            // 1. Vykreslení Leaderboardu
-            document.getElementById('leaderboard').innerHTML = sortedPlayers.map((u, i) => `
-                <div class="glass p-5 border-b-4 ${i === 0 ? 'border-yellow-500 shadow-[0_10px_30px_rgba(234,179,8,0.1)]' : 'border-red-600'}">
-                    <div class="text-[9px] text-gray-500 uppercase font-black">${i + 1}. Místo</div>
-                    <div class="text-xl font-black">${u.n}</div>
-                    <div class="text-3xl text-red-500 font-black tracking-tighter">${u.p} <span class="text-sm opacity-40">B</span></div>
-                </div>`).join('');
-
-            // 2. Vykreslení karet hráčů
-            document.getElementById('players-grid').innerHTML = userNames.map(u => {
-                const t = TIPS[u];
-                const pts = calculatePoints(u);
-
-                return `
-                <div class="glass">
-                    <div class="section-header flex justify-between items-center bg-white/5">
-                        <span class="text-lg font-black text-white italic">${u}</span>
-                        <span class="text-emerald-400 font-black">${pts} Bodů celkem</span>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 relative z-10">
+                
+                <div class="space-y-12">
+                    
+                    <div>
+                        <h3 class="text-[11px] text-gray-500 uppercase font-black tracking-[0.3em] mb-6 flex items-center gap-3">
+                            <span class="w-8 h-[1px] bg-gray-800"></span> World Champion
+                        </h3>
+                        <div class="flex items-center gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.02] ${REALITY.champion ? (tip.champion === REALITY.champion ? 'status-correct' : 'status-wrong') : ''}">
+                            <div class="img-wrapper w-24 h-24 shrink-0 shadow-2xl">
+                                <img src="${DRIVER_IMAGES[tip.champion]}" class="driver-portrait">
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-red-600 font-black mb-1 tracking-widest">PREDICTION</div>
+                                <div class="text-2xl font-black italic uppercase">${tip.champion}</div>
+                                ${REALITY.champion === tip.champion ? '<span class="text-[10px] text-emerald-400 font-bold tracking-widest">+10 PTS RECEIVED</span>' : ''}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="p-6 space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest">Mistr světa (+10)</h4>
-                                <div class="flex items-center p-3 rounded-xl ${RESULTS.champion ? (t.champion === RESULTS.champion ? 'correct' : 'wrong') : 'bg-black/40'}">
-                                    <img src="${getImg(t.champion)}" class="img-f1 mr-3">
-                                    <span class="text-xs font-bold">${t.champion}</span>
-                                    ${RESULTS.champion && t.champion === RESULTS.champion ? '<span class="pts-badge">+10</span>' : ''}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest">Pohár konstruktérů</h4>
-                                <div class="grid grid-cols-1 gap-1">
-                                    ${t.constructors.map((team, i) => {
-                                        const res = RESULTS.constructors[i];
-                                        const ok = res === team;
-                                        return `
-                                        <div class="flex items-center p-2 rounded-lg text-[9px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
-                                            <span class="w-4 opacity-30">${i + 1}.</span>
-                                            <img src="${getImg(team)}" class="img-f1 mr-2 scale-75">
-                                            <span class="font-bold uppercase">${team}</span>
-                                            ${ok ? '<span class="pts-badge">+1</span>' : ''}
-                                        </div>`;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest text-center border-b border-white/5 pb-2">Interní souboje H2H (+1b)</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                ${Object.entries(t.h2h).map(([team, driver]) => {
-                                    const res = RESULTS.h2h[team];
-                                    const ok = res === driver;
-                                    return `
-                                    <div class="flex items-center p-2 rounded-lg text-[9px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
-                                        <img src="${getImg(team)}" class="w-6 mr-2 opacity-50">
-                                        <img src="${getImg(driver)}" class="img-f1 mr-2 scale-75">
-                                        <span class="font-bold">${driver}</span>
-                                        ${ok ? '<span class="pts-badge">+1</span>' : ''}
-                                    </div>`;
-                                }).join('')}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-[8px] text-gray-500 uppercase font-bold mb-3 tracking-widest text-center border-b border-white/5 pb-2">Bonusové otázky & Safety Car</h4>
-                            <div class="grid grid-cols-1 gap-2">
-                                ${Object.entries(t.specials).map(([q, ans]) => {
-                                    const res = RESULTS.specials[q];
-                                    const ok = res === ans;
-                                    const isSC = q.includes("Safety Car");
-                                    return `
-                                    <div class="flex items-center justify-between p-3 rounded-xl text-[10px] ${res ? (ok ? 'correct' : 'wrong') : 'bg-black/20'}">
-                                        <div class="flex flex-col">
-                                            <span class="text-[8px] opacity-40 mb-1 uppercase">${q}</span>
-                                            <span class="font-black uppercase text-white">${ans}</span>
+                    <div>
+                        <h3 class="text-[11px] text-gray-500 uppercase font-black tracking-[0.3em] mb-6 flex items-center gap-3">
+                            <span class="w-8 h-[1px] bg-gray-800"></span> Head-to-Head Battles
+                        </h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            ${Object.entries(tip.h2h).map(([team, driver]) => {
+                                const res = REALITY.h2h[team];
+                                const isCorrect = res === driver;
+                                const teamColor = TEAMS[team].color;
+                                
+                                return `
+                                <div class="relative p-3 rounded-xl border border-white/5 bg-white/[0.01] overflow-hidden ${res ? (isCorrect ? 'status-correct' : 'status-wrong') : ''}">
+                                    <div class="absolute left-0 top-0 bottom-0 w-1" style="background: ${teamColor}"></div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="img-wrapper w-10 h-10 shrink-0">
+                                            <img src="${DRIVER_IMAGES[driver]}" class="driver-portrait">
                                         </div>
-                                        ${ok ? `<span class="pts-badge">${isSC ? '+3' : '+2'}</span>` : ''}
-                                    </div>`;
-                                }).join('')}
-                            </div>
+                                        <div class="min-w-0">
+                                            <div class="text-[7px] text-gray-500 font-bold uppercase truncate">${TEAMS[team].name}</div>
+                                            <div class="text-[10px] font-black uppercase truncate">${driver}</div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')}
                         </div>
                     </div>
-                </div>`;
-            }).join('');
-        };
+                </div>
 
-        // Spuštění
-        render();
+                <div>
+                    <h3 class="text-[11px] text-gray-500 uppercase font-black tracking-[0.3em] mb-6 flex items-center gap-3">
+                        <span class="w-8 h-[1px] bg-gray-800"></span> Technical & Race Specials
+                    </h3>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${Object.entries(tip.specials).map(([q, ans]) => {
+                            const res = REALITY.specials[q];
+                            const isCorrect = String(res) === String(ans);
+                            
+                            return `
+                            <div class="flex justify-between items-center p-4 rounded-xl border border-white/5 bg-white/[0.01] ${res !== null ? (isCorrect ? 'status-correct' : 'status-wrong') : ''}">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider pr-4">${q}</span>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <span class="text-xs font-black uppercase text-white">${ans}</span>
+                                    ${res !== null && isCorrect ? '<span class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded shadow-lg">+2</span>' : ''}
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+
+            </div>
+            
+            <div id="constructors-${name}"></div>
+        </div>`;
+    }).join('');
+}
+        // --- 9. GENEROVÁNÍ TABULEK KONSTRUKTÉRŮ ---
+function renderConstructors(playerName) {
+    const tip = PLAYERS[playerName];
+    
+    // Generujeme HTML pro celou sekci konstruktérů
+    let html = `
+    <div class="mt-16 pt-10 border-t border-white/5">
+        <h3 class="text-[11px] text-gray-500 uppercase font-black tracking-[0.3em] mb-8 flex items-center gap-3">
+            <span class="w-8 h-[1px] bg-gray-800"></span> World Constructors' Championship Prediction
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    `;
+
+    // Procházíme všech 11 pozic, které hráč tipoval
+    tip.constructors.forEach((teamKey, index) => {
+        const teamData = TEAMS[teamKey];
+        const actualTeamAtPos = REALITY.constructors[index];
+        const isCorrect = actualTeamAtPos === teamKey;
+        const isFilled = REALITY.constructors.length > index;
+
+        // Dynamické třídy pro stavy: správně / špatně / zatím nevyhodnoceno
+        let statusClass = "border-white/5 bg-white/[0.01]";
+        if (isFilled) {
+            statusClass = isCorrect 
+                ? "border-emerald-500/40 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                : "opacity-30 border-white/5 grayscale";
+        }
+
+        html += `
+        <div class="flex items-center gap-4 p-4 rounded-xl border ${statusClass} transition-all duration-500 group">
+            <div class="text-xl font-black italic ${isCorrect ? 'text-emerald-500' : 'text-gray-700'} w-6">
+                ${index + 1}
+            </div>
+            <div class="w-12 h-12 flex items-center justify-center bg-black/40 rounded-lg p-2 border border-white/5 shadow-inner">
+                <img src="${teamData.logo}" class="max-h-full max-w-full object-contain filter brightness-125 group-hover:scale-110 transition-transform">
+            </div>
+            <div class="min-w-0">
+                <div class="text-[10px] font-black uppercase tracking-tighter truncate">${teamData.name}</div>
+                ${isCorrect ? '<div class="text-[8px] text-emerald-400 font-bold tracking-widest mt-0.5">POSITION HIT</div>' : ''}
+                ${isFilled && !isCorrect ? '<div class="text-[8px] text-red-500/50 font-bold uppercase mt-0.5">MISSED</div>' : ''}
+            </div>
+        </div>`;
+    });
+
+    // Přidání sekce pro bonusy (Top 5 / 100% trefa)
+    if (REALITY.constructors.length === 11) {
+        const correctCount = tip.constructors.filter((t, i) => t === REALITY.constructors[i]).length;
+        const top5Correct = tip.constructors.slice(0, 5).every((t, i) => t === REALITY.constructors[i]);
+        
+        if (top5Correct || correctCount === 11) {
+            html += `
+            <div class="col-span-full mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+                <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">CONSTRUCTOR BONUS ACHIEVED!</span>
+                <span class="text-xl font-black text-emerald-500">+${correctCount === 11 ? SCORING.BONUS_CLEAN : SCORING.BONUS_TOP5} PTS</span>
+            </div>`;
+        }
+    }
+
+    html += `</div></div>`;
+    return html;
+}
+        // --- 10. HLAVNÍ FUNKCE PRO VYKRESLENÍ CELÉHO WEBU ---
+function renderApp() {
+    console.log("Startuji renderování aplikace...");
+
+    // 1. Nejprve vykreslíme horní žebříček s body
+    renderLeaderboard();
+
+    // 2. Poté vykreslíme detailní karty všech hráčů (Mistr, H2H, Speciály)
+    renderPlayerDetails();
+
+    // 3. Nakonec do každé karty vložíme tabulku konstruktérů
+    // Protože karty už existují v DOM, můžeme do nich teď "vstříknout" tabulky
+    Object.keys(PLAYERS).forEach(playerName => {
+        const constructorContainer = document.getElementById(`constructors-${playerName}`);
+        if (constructorContainer) {
+            constructorContainer.innerHTML = renderConstructors(playerName);
+        }
+    });
+
+    console.log("Renderování dokončeno.");
+}
+
+// --- 11. AUTOMATICKÉ SPUŠTĚNÍ PO NAČTENÍ STRÁNKY ---
+// Toto zajistí, že se funkce renderApp spustí až ve chvíli, kdy je prohlížeč připraven
+document.addEventListener('DOMContentLoaded', () => {
+    renderApp();
+});
     </script>
 </body>
 </html>
