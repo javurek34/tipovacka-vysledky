@@ -1,3 +1,190 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIPOVAČKA 2026 - VÝSLEDKY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace&display=swap" rel="stylesheet">
+    <style>
+        body { background: #08080a; color: #e2e8f0; font-family: 'Bruno Ace', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; overflow: hidden; }
+        .correct { background: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; border-left: 4px solid #10b981 !important; }
+        .wrong { opacity: 0.3; grayscale: 1; filter: grayscale(1); }
+        .img-f1 { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; background: #000; border: 1px solid rgba(255,255,255,0.1); }
+        .pts-badge { background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: auto; }
+        .section-header { background: rgba(255,255,255,0.02); padding: 0.75rem 1rem; font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-[1600px] mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-4">
+                TIPOVAČKA <span class="text-red-600">2026</span> – průběžné výsledky
+            </h1>
+            <div class="text-sm md:text-xl text-gray-500 font-bold uppercase tracking-[0.4em] mb-10">
+                Odjeto závodů: <span id="race-count" class="text-red-500">0/24</span>
+            </div>
+            
+            <div id="leaderboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto"></div>
+        </header>
+
+        <div id="players-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-10"></div>
+    </div>
+
+    <script>
+        // ======================================================
+        // 1. ZDE DOPLŇUJ VÝSLEDKY (REÁLNÝ STAV)
+        // ======================================================
+        const PROGRESS = "0/24"; 
+
+        const RESULTS = {
+            champion: null, // "Verstappen"
+            constructors: [], // ["mercedes", "mclaren", "redbull", "ferrari", "audi", "williams", "aston", "rb", "alpine", "cadillac", "haas"]
+            h2h: {
+                redbull: null, mclaren: null, ferrari: null, mercedes: null, 
+                williams: null, aston: null, audi: null, cadillac: null, 
+                alpine: null, rb: null, haas: null
+            },
+            specials: {
+                "Kdo získá více Poles?": null,
+                "Kdo skončí hůře z nabízených?": null,
+                "První stáj s body?": null,
+                "Vydrží Hadjar celou sezónu?": null,
+                "Počet unikátních vítězů?": null,
+                "Safety Car v Austrálii?": null,
+                "Nejrychlejší Pit Stop?": null,
+                "Kvalifikační kolo v Monaku?": null,
+                "Počet nasazení Full Wets?": null,
+                "Papaya Rules v McLarenu?": null
+            }
+        };
+
+        // ======================================================
+        // 2. DATABÁZE (Loga a Fotky)
+        // ======================================================
+        const D = {
+            "Verstappen": "https://img2.51gt3.com/rac/racer/202503/d5d8525b68df41969698d248d2194383.png",
+            "Norris": "https://img2.51gt3.com/rac/racer/202503/cfc139b2b49e48cd80a436c00a71711d.png",
+            "Piastri": "https://ratings-images-prod.pulse.ea.com/F1-25/portraits/p4.png?im=FaceCrop,algorithm=dnn,padding=0.7,width=256,height=256",
+            "Hamilton": "https://img2.51gt3.com/rac/racer/202503/0ff8ae7649b447bd8e023f4e31dc4042.png",
+            "Leclerc": "https://img2.51gt3.com/rac/racer/202503/fe2de9975d864e38acfd9933164954a6.png",
+            "Russell": "https://f1mavericks.com/wp-content/uploads/2025/12/georus01.png",
+            "Sainz": "https://cdn-4.motorsport.com/images/mgl/2jXPqrg6/s800/carlos-sainz-williams.jpg",
+            "Alonso": "https://img2.51gt3.com/rac/racer/202503/25ccca7ffa96437aa54f169a4e9338fa.png",
+            "Hülkenberg": "https://f1mavericks.com/wp-content/uploads/2025/12/nichul01.png",
+            "Bortoleto": "https://img2.51gt3.com/rac/racer/202503/gabbor01.png",
+            "Bearman": "https://f1mavericks.com/wp-content/uploads/2025/12/ollbea01.png",
+            "Ocon": "https://f1mavericks.com/wp-content/uploads/2025/12/estoco01.png",
+            "Gasly": "https://f1mavericks.com/wp-content/uploads/2025/12/piegas01.png",
+            "Lawson": "https://f1mavericks.com/wp-content/uploads/2025/12/lialaw01.png",
+            "ANO": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Approve_icon.svg/1200px-Approve_icon.svg.png",
+            "NE": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Red_X.svg/1200px-Red_X.svg.png",
+            "Audi": "https://i.namu.wiki/i/4IBk6HSXTu4w5iSVgRXwBvbZkqJE2KDQNTdPQ9FbSjrWXWenVLMZCViGXE4kUstE1_NOJEAyaPcj96BJ3sO9Pw.webp"
+        };
+
+        const T = {
+            mclaren: { n: "McLaren", l: "https://static.vecteezy.com/system/resources/previews/020/500/399/non_2x/mclaren-brand-logo-car-symbol-name-black-and-orange-design-british-automobile-illustration-free-vector.jpg", c: "#FF8700" },
+            redbull: { n: "Red Bull", l: "https://cdn-6.motorsport.com/images/mgl/Y99JQRbY/s8/red-bull-racing-logo-1.jpg", c: "#0600EF" },
+            mercedes: { n: "Mercedes", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp/890px-Mercedes-AMG_Petronas_Formula_One_Team_Logo_%282026%29.webp.png", c: "#00A19B" },
+            ferrari: { n: "Ferrari", l: "https://upload.wikimedia.org/wikipedia/de/thumb/c/c0/Scuderia_Ferrari_Logo.svg/1536px-Scuderia_Ferrari_Logo.svg.png", c: "#EF4444" },
+            audi: { n: "Audi", l: "https://i.namu.wiki/i/4IBk6HSXTu4w5iSVgRXwBvbZkqJE2KDQNTdPQ9FbSjrWXWenVLMZCViGXE4kUstE1_NOJEAyaPcj96BJ3sO9Pw.webp", c: "#F50537" },
+            aston: { n: "Aston Martin", l: "https://www.f1authentics.com/cdn/shop/collections/Team-Logos-1500x1800px-ASTON-MARTIN.jpg", c: "#006F62" },
+            williams: { n: "Williams", l: "https://images.seeklogo.com/logo-png/61/1/atlassian-williams-racing-logo-png_seeklogo-613639.png", c: "#00A0DE" },
+            rb: { n: "RB", l: "https://cdn-3.motorsport.com/images/mgl/Y998adGY/s800/visa-cash-app-rb-logo.jpg", c: "#6692FF" },
+            alpine: { n: "Alpine", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Alpine_F1_Team_Logo.svg/500px-Alpine_F1_Team_Logo.svg.png", c: "#0090FF" },
+            cadillac: { n: "Cadillac", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Cadillac_Formula_1_Team_logo.png/1024px-Cadillac_Formula_1_Team_logo.png", c: "#E5E7EB" },
+            haas: { n: "Haas", l: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Haas_F1_Team_Logo.svg/1280px-Haas_F1_Team_Logo.svg.png", c: "#E6002B" }
+        };
+// ======================================================
+        // 3. DATA HRÁČŮ (VŠECHNY TIPY)
+        // ======================================================
+        const TIPS = {
+            "Škody": {
+                champion: "Verstappen",
+                constructors: ["mercedes", "mclaren", "redbull", "ferrari", "audi", "williams", "aston", "rb", "cadillac", "alpine", "haas"],
+                h2h: {
+                    redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell", 
+                    williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas", 
+                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+                },
+                specials: {
+                    "Kdo získá více Poles?": "Verstappen",
+                    "Kdo skončí hůře z nabízených?": "Pérez",
+                    "První stáj s body?": "Audi",
+                    "Vydrží Hadjar celou sezónu?": "ANO",
+                    "Počet unikátních vítězů?": "5",
+                    "Safety Car v Austrálii?": "ANO",
+                    "Nejrychlejší Pit Stop?": "Red Bull",
+                    "Kvalifikační kolo v Monaku?": "Rychlejší",
+                    "Počet nasazení Full Wets?": "2",
+                    "Papaya Rules v McLarenu?": "ANO"
+                }
+            },
+            "Králik": {
+                champion: "Piastri",
+                constructors: ["mclaren", "redbull", "ferrari", "mercedes", "aston", "audi", "alpine", "cadillac", "williams", "haas", "rb"],
+                h2h: {
+                    redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell", 
+                    williams: "Albon", aston: "Alonso", audi: "Hülkenberg", cadillac: "Pérez", 
+                    alpine: "Gasly", rb: "Lawson", haas: "Ocon"
+                },
+                specials: {
+                    "Kdo získá více Poles?": "Norris",
+                    "Kdo skončí hůře z nabízených?": "Hadjar",
+                    "První stáj s body?": "Cadillac",
+                    "Vydrží Hadjar celou sezónu?": "NE",
+                    "Počet unikátních vítězů?": "4",
+                    "Safety Car v Austrálii?": "ANO",
+                    "Nejrychlejší Pit Stop?": "McLaren",
+                    "Kvalifikační kolo v Monaku?": "Pomalejší",
+                    "Počet nasazení Full Wets?": "3",
+                    "Papaya Rules v McLarenu?": "NE"
+                }
+            },
+            "Javor": {
+                champion: "Verstappen",
+                constructors: ["mercedes", "mclaren", "ferrari", "redbull", "williams", "aston", "alpine", "rb", "haas", "audi", "cadillac"],
+                h2h: {
+                    redbull: "Verstappen", mclaren: "Norris", ferrari: "Hamilton", mercedes: "Russell", 
+                    williams: "Sainz", aston: "Alonso", audi: "Hülkenberg", cadillac: "Bottas", 
+                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+                },
+                specials: {
+                    "Kdo získá více Poles?": "Verstappen",
+                    "Kdo skončí hůře z nabízených?": "Pérez",
+                    "První stáj s body?": "Audi",
+                    "Vydrží Hadjar celou sezónu?": "ANO",
+                    "Počet unikátních vítězů?": "6",
+                    "Safety Car v Austrálii?": "ANO",
+                    "Nejrychlejší Pit Stop?": "Red Bull",
+                    "Kvalifikační kolo v Monaku?": "Rychlejší",
+                    "Počet nasazení Full Wets?": "1",
+                    "Papaya Rules v McLarenu?": "ANO"
+                }
+            },
+            "Čermis": {
+                champion: "Verstappen",
+                constructors: ["mercedes", "mclaren", "redbull", "williams", "aston", "ferrari", "cadillac", "audi", "rb", "haas", "alpine"],
+                h2h: {
+                    redbull: "Verstappen", mclaren: "Piastri", ferrari: "Leclerc", mercedes: "Russell", 
+                    williams: "Sainz", aston: "Alonso", audi: "Bortoleto", cadillac: "Bottas", 
+                    alpine: "Gasly", rb: "Lawson", haas: "Bearman"
+                },
+                specials: {
+                    "Kdo získá více Poles?": "Russell",
+                    "Kdo skončí hůře z nabízených?": "Hadjar",
+                    "První stáj s body?": "Audi",
+                    "Vydrží Hadjar celou sezónu?": "NE",
+                    "Počet unikátních vítězů?": "5",
+                    "Safety Car v Austrálii?": "NE",
+                    "Nejrychlejší Pit Stop?": "Ferrari",
+                    "Kvalifikační kolo v Monaku?": "Rychlejší",
+                    "Počet nasazení Full Wets?": "4",
+                    "Papaya Rules v McLarenu?": "ANO"
+                }
+            }
+        };
 // ======================================================
         // 4. LOGIKA VÝPOČTU A RENDEROVÁNÍ
         // ======================================================
