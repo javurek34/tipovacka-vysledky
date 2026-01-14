@@ -239,13 +239,34 @@ const REALITY = {
     // Výsledky speciálních otázek
     specials: {
         "Safety Car v Austrálii?": null,        // "ANO" / "NE"
+        "Celkem SC vyjede?": null,               // "<5x" / "5–7x" / "8–10x" / "10–15x" / ">15x"
+        "SC Aston vs SC Mercedes": null,        // "Aston Martin" / "Mercedes"
+        "SC v SIN/CAN/AZE": null                // "ANI JEDNOU" / "SIN" / "AZE" / "CAN" / "2 ze 3" / "všude"
         "DHL Fastest Pit Stop?": null,          // "Red Bull" / "McLaren" / "Ferrari"
         "Bude v Brazílii pršet?": null,         // "ANO" / "NE"
+        "Bude v Belgii pršet?": null,         // "ANO" / "NE"
         "Monako: Čas vs 2025?": null,           // "RYCHLEJŠÍ" / "POMALEJŠÍ"
         "Získá Hamilton 106. výhru?": null,     // "ANO" / "NE"
         "Pit Stop pod 1.91s?": null,            // "ANO" / "NE"
+        "Zvítězí Ferrari v Monze?": null,         // "ANO" / "NE"
         "Hadjar odjede celou sezónu?": null,    // "ANO" / "NE"
-        "Počet unikátních vítězů?": null        // Číslo (např: 5)
+        "Počet unikátních vítězů?": null,       // Číslo (např: 5)
+        "Nasazení Full wets": null,            // "<1" / "1–3x" / ">3"
+        "Papaya rules": null,                   // "Dodrží" / "Lando" / "Oscar"
+        "První body Audi vs Cadillac": null,    // "Audi" / "Cadillac" / "OBA"
+        "První body Ferrari vs Aston": null,    // "Ferrari" / "Aston" / "OBA"
+        "První body Alpine vs Williams": null,    // "Alpine" / "Williams" / "OBA"
+        "První body Haas vs Racing Bulls": null,    // "Haas" / "Racing_Bulls" / "OBA"
+        "Nejvíce POLES (VER vs RUS vs NOR)?": null,         // "Verstappen" / "Russell" / "Norris" / "nikdo"
+        "Nejvíce POLES (ANT vs SAI vs PIA)?": null,         // "Antonelli" / "Sainz" / "Piastri" / "nikdo"
+        "Nejvíce POLES (VER vs HAM vs PIA)?": null,         // "Verstappen" / "Hamilton" / "Piastri" / "nikdo"
+        "Nejvíce POLES (VER vs LEC vs RUS)?": null,         // "Verstappen" / "Leclerc" / "Russell" / "nikdo"
+        "Kdo skončí nejhůře (ALO vs LEC vs RUS)?": null,    // "Alonso" / "Leclerc" / "Russell"
+        "Kdo skončí nejhůře (STR vs PER vs LAW)?": null,    // "Stroll" / "Pérez" / "Lawson"
+        "Kdo skončí nejhůře (BOT vs OCO vs BOR)?": null,    // "Bottas" / "Ocon" / "Bortoleto"
+        
+        
+        
     }
 };
 
@@ -278,6 +299,33 @@ const PLAYERS = {
             "Hadjar odjede celou sezónu?": "ANO",
             "Počet unikátních vítězů?": "6",
             "Audi_vs_Cadillac": "OBA",
+            
+            "Safety Car v Austrálii?": "ANO",        // "ANO" / "NE"
+        "Celkem SC vyjede?": "10–15x",               // "<5x" / "5–7x" / "8–10x" / "10–15x" / ">15x"
+        "SC Aston vs SC Mercedes": "Mercedes",        // "Aston Martin" / "Mercedes"
+        "SC v SIN/CAN/AZE": "2 ze 3"                // "ANI JEDNOU" / "SIN" / "AZE" / "CAN" / "2 ze 3" / "všude"
+        "DHL Fastest Pit Stop?": "McLaren",          // "Red Bull" / "McLaren" / "Ferrari"
+        "Bude v Brazílii pršet?": "ANO",         // "ANO" / "NE"
+        "Bude v Belgii pršet?": "ANO",         // "ANO" / "NE"
+        "Monako: Čas vs 2025?": "POMALEJŠÍ",           // "RYCHLEJŠÍ" / "POMALEJŠÍ"
+        "Získá Hamilton 106. výhru?": "ANO",     // "ANO" / "NE"
+        "Pit Stop pod 1.91s?": "NE",            // "ANO" / "NE"
+        "Zvítězí Ferrari v Monze?": "NE",         // "ANO" / "NE"
+        "Hadjar odjede celou sezónu?": "ANO",    // "ANO" / "NE"
+        "Počet unikátních vítězů?": "6",       // Číslo (např: 5)
+        "Nasazení Full wets": "1–3x",            // "<1" / "1–3x" / ">3"
+        "Papaya rules": "Dodrží",                   // "Dodrží" / "Lando" / "Oscar"
+        "První body Audi vs Cadillac": "Audi",    // "Audi" / "Cadillac" / "OBA"
+        "První body Ferrari vs Aston": "Ferrari",    // "Ferrari" / "Aston" / "OBA"
+        "První body Alpine vs Williams": "Williams",    // "Alpine" / "Williams" / "OBA"
+        "První body Haas vs Racing Bulls": "Racing Bulls",    // "Haas" / "Racing Bulls" / "OBA"
+        "Nejvíce POLES (VER vs RUS vs NOR)?": "Norris",         // "Verstappen" / "Russell" / "Norris" / "nikdo"
+        "Nejvíce POLES (ANT vs SAI vs PIA)?": "Piastri",         // "Antonelli" / "Sainz" / "Piastri" / "nikdo"
+        "Nejvíce POLES (VER vs HAM vs PIA)?": "Verstappen",         // "Verstappen" / "Hamilton" / "Piastri" / "nikdo"
+        "Nejvíce POLES (VER vs LEC vs RUS)?": "Verstappen",         // "Verstappen" / "Leclerc" / "Russell" / "nikdo"
+        "Kdo skončí nejhůře (ALO vs LEC vs RUS)?": "Alonso",    // "Alonso" / "Leclerc" / "Russell"
+        "Kdo skončí nejhůře (STR vs PER vs LAW)?": "Stroll",    // "Stroll" / "Pérez" / "Lawson"
+        "Kdo skončí nejhůře (BOT vs OCO vs BOR)?": "Ocon",    // "Bottas" / "Ocon" / "Bortoleto"
         }
     },
     "Králik": {
