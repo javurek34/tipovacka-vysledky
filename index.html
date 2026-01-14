@@ -518,6 +518,7 @@ function renderLeaderboard() {
 }
         // --- 8. GENEROVÁNÍ DETAILNÍCH KARET HRÁČŮ ---
 function renderPlayerDetails() {
+    
     const container = document.getElementById('players-root');
     
     container.innerHTML = Object.keys(PLAYERS).map(name => {
@@ -588,27 +589,35 @@ function renderPlayerDetails() {
                     </div>
                 </div>
 
-                <div>
+<div>
                     <h3 class="text-[11px] text-gray-500 uppercase font-black tracking-[0.3em] mb-6 flex items-center gap-3">
                         <span class="w-8 h-[1px] bg-gray-800"></span> Technical & Race Specials
                     </h3>
-                    <div class="grid grid-cols-1 gap-2">
+                    <div class="grid grid-cols-1 gap-2 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
                         ${Object.entries(tip.specials).map(([q, ans]) => {
                             const res = REALITY.specials[q];
-                            const isCorrect = String(res) === String(ans);
                             
+                            // Kontrola, zda už známe výsledek
+                            const hasResult = res !== null && res !== undefined;
+                            const isCorrect = hasResult && String(res).trim() === String(ans).trim();
+                            
+                            // Definice barvy: null = šedá, trefa = zelená, mimo = červená
+                            let statusClass = "border-white/5 bg-white/[0.01]";
+                            if (hasResult) {
+                                statusClass = isCorrect ? "status-correct" : "status-wrong";
+                            }
+
                             return `
-                            <div class="flex justify-between items-center p-4 rounded-xl border border-white/5 bg-white/[0.01] ${res !== null ? (isCorrect ? 'status-correct' : 'status-wrong') : ''}">
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider pr-4">${q}</span>
+                            <div class="flex justify-between items-center p-3 rounded-xl border ${statusClass} transition-colors">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider pr-4 leading-tight">${q}</span>
                                 <div class="flex items-center gap-3 shrink-0">
-                                    <span class="text-xs font-black uppercase text-white">${ans}</span>
-                                    ${res !== null && isCorrect ? '<span class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded shadow-lg">+2</span>' : ''}
+                                    <span class="text-[10px] font-black uppercase text-white">${ans}</span>
+                                    ${hasResult && isCorrect ? '<span class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse">+2</span>' : ''}
                                 </div>
                             </div>`;
                         }).join('')}
                     </div>
-                </div>
-
+                </div
             </div>
             
             <div id="constructors-${name}"></div>
