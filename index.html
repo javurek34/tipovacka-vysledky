@@ -685,28 +685,6 @@ function renderConstructors(playerName) {
     html += `</div></div>`;
     return html;
 }
-        // --- 10. HLAVNÍ FUNKCE PRO VYKRESLENÍ CELÉHO WEBU ---
-function renderApp() {
-    console.log("Startuji renderování aplikace...");
-
-    // 1. Nejprve vykreslíme horní žebříček s body
-    renderLeaderboard();
-
-    // 2. Poté vykreslíme detailní karty všech hráčů (Mistr, H2H, Speciály)
-    renderPlayerDetails();
-
-    // 3. Nakonec do každé karty vložíme tabulku konstruktérů
-    // Protože karty už existují v DOM, můžeme do nich teď "vstříknout" tabulky
-    Object.keys(PLAYERS).forEach(playerName => {
-        const constructorContainer = document.getElementById(`constructors-${playerName}`);
-        if (constructorContainer) {
-            constructorContainer.innerHTML = renderConstructors(playerName);
-        }
-    });
-
-    console.log("Renderování dokončeno.");
-}
-
 // --- 11. AUTOMATICKÉ SPUŠTĚNÍ PO NAČTENÍ STRÁNKY ---
 // Funkce, která všechno spustí
 function renderApp() {
